@@ -1,0 +1,36 @@
+Toán lớp 4:
+Chủ đề: {chu_de}
+Số câu hỏi: {total_question} câu
+câu dễ {total_easy} câu
+câu trung bình: {total_medium} câu
+câu khó: {total_hard} câu
+Tổng điểm {total_ports} điểm cho 20 câu
+có 4 loại câu hỏi: multiple_choice, single_choice, true_false, fill_blank
+output phải chuẩn format json để js còn có thể convert đúng
+=> cấu trúc của câu hỏi
+Ex:
+{"title" : "Cơ thể con người",
+    "content" : "Con người có 5 ngón tay ở mỗi bàn tay?",
+    "type" : "true_false",
+    "answers" : [ 
+        {
+            "text" : "Đúng",
+            "isCorrect" : true,
+            "explanation" : "",
+        }, 
+        {
+            "text" : "Sai",
+            "isCorrect" : false,
+            "explanation" : "",
+        }
+    ],
+    "explanation" : "",
+    "difficulty" : "easy",
+    "points" : 1,
+    "class" : "LOP_4"}
+    "tags" : [
+        "sinh học", 
+        "cơ thể", 
+        "lớp 3"
+    ],
+    "isActive" : true}
