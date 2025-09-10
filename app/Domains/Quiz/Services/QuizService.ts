@@ -1,10 +1,11 @@
 import Quiz from '#domains/Quiz/Models/Quiz'
+import GenerateQuizHistory from '#domains/Quiz/Models/GenerateQuizzHistory'
 import Question from '#domains/Question/Models/Question'
 import Subject from '#domains/Subject/Models/Subject'
 import mongoose from 'mongoose'
 import StudentQuiz from '#domains/Quiz/Models/StudentQuiz'
-import QueueService from '#domains/Shared/Services/QueueService'
-import { log } from 'node:console'
+import queue from '@rlanz/bull-queue/services/main';
+import RegisterStripeCustomer from '#jobs/GenerateQuizzWIthAI';
 
 export default class QuizService {
   public static async assignQuizToUser(
@@ -60,14 +61,27 @@ export default class QuizService {
   }
 
   // Generate quiz with AI
-  public static async generateQuizWithAI(data: any): Promise<any> {
+  public static async generateQuizWithAI(data: any, auth: any): Promise<any> {
     try {
-      // set queue
-      const queueService = new QueueService('quiz-generation-queue')
-      await queueService.addJob({ action: 'generateQuiz', data })
+      const generateQuizHistory = await GenerateQuizHistory.create({
+        user: auth.user._id,
+        provider: data.provider || 'openai',
+        modelName: 'gpt-4',
+        data,
+        status: 'not_started',
+      })
+
+      data.historyId = generateQuizHistory._id;
+      data.provider = data.provider || 'openai'
+      data.modelName = 'gpt-4'
+      // create generate quiz job history
+      queue.dispatch(RegisterStripeCustomer, { userId: auth.user._id, data }, {
+        queueName: 'startQuiz',
+      });
 
       return { status: 'success', data: {}, timestamp: new Date().toISOString() }
     } catch (error) {
+      console.log('Error generating quiz with AI:', error);
       return {
         status: 'error',
         message: 'Không thể tạo bài kiểm tra với AI',

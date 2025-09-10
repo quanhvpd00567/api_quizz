@@ -25,7 +25,7 @@ export default defineConfig({
   | will be scanned automatically from the "./commands" directory.
   |
   */
-  commands: [() => import('@adonisjs/core/commands')],
+  commands: [() => import('@adonisjs/core/commands'), () => import('@rlanz/bull-queue/commands')],
 
   /*
   |--------------------------------------------------------------------------
@@ -44,6 +44,7 @@ export default defineConfig({
       file: () => import('@adonisjs/core/providers/repl_provider'),
       environment: ['repl', 'test'],
     },
+    () => import('@rlanz/bull-queue/queue_provider')
   ],
 
   /*

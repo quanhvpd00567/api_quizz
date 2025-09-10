@@ -43,4 +43,13 @@ export default await Env.create(new URL('../', import.meta.url), {
   MAX_FILE_SIZE: Env.schema.string.optional(),
   UPLOAD_DIR: Env.schema.string.optional(),
   ALLOWED_FILE_TYPES: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for @rlanz/bull-queue
+  |----------------------------------------------------------
+  */
+  QUEUE_REDIS_HOST: Env.schema.string({ format: 'host' }),
+  QUEUE_REDIS_PORT: Env.schema.number(),
+  QUEUE_REDIS_PASSWORD: Env.schema.string.optional()
 })

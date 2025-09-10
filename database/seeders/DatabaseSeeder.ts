@@ -10,10 +10,10 @@ export default class DatabaseSeeder {
 
     try {
       // Clear existing data (be careful in production!)
-      await this.clearData()
+      // await this.clearData()
 
       // Seed data
-      // const users = await this.seedUsers()
+      const users = await this.seedUsers()
       // const categories = await this.seedCategories()
       const questions = await new QuestionSeeder().run()
 

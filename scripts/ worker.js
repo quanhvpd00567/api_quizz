@@ -1,6 +1,7 @@
 // worker.mjs
 import Queue from 'bull';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import fs from 'fs';
 
 const myQueue = new Queue('quiz-generation-queue', {
@@ -24,9 +25,11 @@ myQueue.on('completed', async (job, result) => {
   if (!result) return;
   if (job.data.action === 'generateQuiz') {
     console.log(`Job ${job.id} completed`);
+
     // call api to save result to database
     const config = {
       method: 'post',
+      maxBodyLength: Infinity,
       url: 'http://localhost:3333/api/v1/quizzes/ai-save',
       headers: {
         'Content-Type': 'application/json',
@@ -39,7 +42,13 @@ myQueue.on('completed', async (job, result) => {
 
     try {
       // call api k cần response
-      axios(config)
+      // axiosRetry(axios, { 
+      //   retries: 5, 
+      //   retryDelay: (count) => count * 1000, // 1s, 2s, 3s...
+      //   retryCondition: (error) => error.code === 'ECONNREFUSED'
+      // });
+
+      await axios(config)
     } catch (error) {
       console.log(error)
     }
@@ -74,7 +83,7 @@ async function testAi(dataSettings) {
 
   const config = {
     method: 'post',
-    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
     headers: {
       'Content-Type': 'application/json',
       'X-goog-api-key': 'AIzaSyDLaS8vN5gFdStPgP31jWSUj5eLQ17kW8M',
@@ -83,11 +92,13 @@ async function testAi(dataSettings) {
   }
 
   try {
-    const response = await axios(config)
-    const result = response.data.candidates[0].content.parts[0].text
-    let cleaned = result.replace(/^```json\s*/, '').replace(/```$/, '')
-    let fixed = cleaned.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
-    return JSON.parse(fixed)
+    // const response = await axios(config)
+    // const result = response.data.candidates[0].content.parts[0].text
+    // let cleaned = result.replace(/^```json\s*/, '').replace(/```$/, '')
+    // let fixed = cleaned.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+    // return JSON.parse(fixed)
+
+    return { status: 'success', message: 'AI quiz generated successfully', questions: [] }
   } catch (error) {
     console.log(error)
   }
