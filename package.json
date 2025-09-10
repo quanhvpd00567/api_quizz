@@ -16,7 +16,8 @@
     "migration:rollback": "node ace migration:rollback",
     "migration:fresh": "node ace migration:fresh",
     "db:seed": "node ace db:seed",
-    "db:setup": "npm run migration:fresh && npm run db:seed"
+    "db:setup": "npm run migration:fresh && npm run db:seed",
+    "queue:start": "node --no-warnings ace queue:listen --queue=startQuiz"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
@@ -36,6 +37,7 @@
     "#tests/*": "./tests/*.js",
     "#config/*": "./config/*.js",
     "#domains/*": "./app/Domains/*.js",
+    "#jobs/*": "./app/Jobs/*.js",
     "#shared/*": "./app/Shared/*.js"
   },
   "devDependencies": {
@@ -63,11 +65,13 @@
     "@adonisjs/lucid": "^21.8.0",
     "@adonisjs/validator": "^13.0.2",
     "@google/generative-ai": "^0.24.1",
+    "@rlanz/bull-queue": "^3.1.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.96",
     "axios": "^1.11.0",
+    "axios-retry": "^4.5.0",
     "bcryptjs": "^3.0.2",
     "bull": "^4.16.5",
     "bullmq": "^5.58.5",

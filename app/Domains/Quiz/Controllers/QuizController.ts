@@ -1,10 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Quiz from '#domains/Quiz/Models/Quiz'
-import StudentQuiz from '#domains/Quiz/Models/StudentQuiz'
 import Subject from '#domains/Subject/Models/Subject'
 import Question from '#domains/Question/Models/Question'
 import QuizService from '#domains/Quiz/Services/QuizService'
-import fs from 'node:fs'
 
 import {
   validateCreateQuiz,
@@ -540,10 +538,10 @@ export default class QuizController {
    * Generate quiz with AI
    * POST /quizzes/generate
    */
-  async generateQuiz({ request, response }: HttpContext) {
+  async generateQuiz({ request, response, auth }: HttpContext) {
     try {
       const body = request.body()
-      const result = await QuizService.generateQuizWithAI(body)
+      const result = await QuizService.generateQuizWithAI(body, auth)
       return response.ok(result)
     } catch (error) {
       console.error('Generate quiz with AI error:', error)
@@ -562,8 +560,7 @@ export default class QuizController {
   async saveAiQuiz({ request, response }: HttpContext) {
     try {
       const body = request.body()
-      // const data = await fs.readFileSync('app/Domains/Quiz/data.json', 'utf8')
-
+      console.log('Generate quiz request body:aaaaaaaa');
       const result = await QuizService.saveAiGeneratedQuiz(body)
       return response.status(200).json({
         status: 'success',
