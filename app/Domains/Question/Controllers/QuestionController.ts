@@ -211,7 +211,7 @@ export default class QuestionController {
     try {
       const { id } = params
       const body = request.body()
-
+      body.explanation = body.explanation || ''
       // Validate request data
       const validation = validateUpdateQuestion(body)
       if (!validation.isValid) {

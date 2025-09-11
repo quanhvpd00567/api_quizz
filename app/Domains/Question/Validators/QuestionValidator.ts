@@ -1,3 +1,4 @@
+import { log } from 'node:console'
 import { z } from 'zod'
 
 // Answer schema for validation
@@ -88,12 +89,8 @@ const createQuestionSchema = z
           return correctMultiple >= 1
 
         case 'fill_blank':
-          if (answers.length < 1) {
-            return false
-          }
-          // For fill in the blank, all answers should be correct answers
-          return answers.every((a) => a.isCorrect)
-
+          const correctFillBlank = answers.filter((a) => a.isCorrect).length
+          return correctFillBlank >= 1
         default:
           return false
       }
@@ -180,10 +177,8 @@ const updateQuestionSchema = z
           return correctMultiple >= 1
 
         case 'fill_blank':
-          if (answers.length < 1) {
-            return false
-          }
-          return answers.every((a) => a.isCorrect)
+          const correctFillBlank = answers.filter((a) => a.isCorrect).length
+          return correctFillBlank >= 1
 
         default:
           return false
@@ -273,6 +268,7 @@ export function validateUpdateQuestion(data: any) {
       errors: null,
     }
   } catch (error: any) {
+    console.log('Validation errors:', error)
     return {
       isValid: false,
       data: null,

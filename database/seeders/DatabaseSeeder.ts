@@ -10,16 +10,16 @@ export default class DatabaseSeeder {
 
     try {
       // Clear existing data (be careful in production!)
-      // await this.clearData()
+      await this.clearData()
 
       // Seed data
       const users = await this.seedUsers()
       // const categories = await this.seedCategories()
-      const questions = await new QuestionSeeder().run()
+      // const questions = await new QuestionSeeder().run()
 
       console.log('✅ Database seeding completed successfully!')
       // console.log(`📊 Created: ${users.length} users, ${categories.length} categories, ${questions.length} questions`)
-      console.log(`📊 Created: ${questions.length} questions`)
+      // console.log(`📊 Created: ${questions.length} questions`)
     } catch (error) {
       console.error('❌ Database seeding failed:', error)
       throw error
@@ -29,8 +29,8 @@ export default class DatabaseSeeder {
   private static async clearData(): Promise<void> {
     console.log('🧹 Clearing existing data...')
 
-    // await Promise.all([User.deleteMany({}), Category.deleteMany({})])
-    // await Promise.all([ Question.deleteMany({})])
+    await Promise.all([User.deleteMany({}), Category.deleteMany({})])
+    await Promise.all([ Question.deleteMany({})])
   }
 
   private static async seedUsers(): Promise<any[]> {

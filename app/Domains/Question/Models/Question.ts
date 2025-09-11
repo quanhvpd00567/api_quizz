@@ -12,7 +12,7 @@ export interface IQuestion extends Document {
   id: string
   title: string
   content: string
-  type: 'true_false' | 'multiple_choice' | 'single_choice' | 'fill_blank'
+  type: string
   answers: IAnswer[]
   explanation?: string
   difficulty: 'easy' | 'medium' | 'hard'
@@ -67,7 +67,7 @@ const questionSchema = new Schema<IQuestion>(
     type: {
       type: String,
       required: true,
-      enum: ['true_false', 'multiple_choice', 'single_choice', 'fill_blank'],
+      // enum: ['true_false', 'multiple_choice', 'single_choice', 'fill_blank'],
       index: true,
     },
     answers: {
@@ -97,7 +97,7 @@ const questionSchema = new Schema<IQuestion>(
               )
 
             case 'fill_blank':
-              return answers.length >= 1 && answers.every((a) => a.isCorrect)
+              return answers.length >= 1 && answers.filter((a) => a.isCorrect).length >= 1
 
             default:
               return false
@@ -110,6 +110,7 @@ const questionSchema = new Schema<IQuestion>(
       type: String,
       trim: true,
       maxlength: 1000,
+      default: '',
     },
     difficulty: {
       type: String,

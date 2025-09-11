@@ -43,8 +43,8 @@ const StudentQuizSchema = new Schema<ISGenerateQuizHistory>(
     status: {
       type: String,
       enum: {
-        values: ['not_started', 'in_progress', 'completed'],
-        message: 'Status must be not_started, in_progress, or completed',
+        values: ['not_started', 'in_progress', 'failed', 'completed'],
+        message: 'Status must be not_started, in_progress, failed, or completed',
       },
       default: 'not_started',
     },
