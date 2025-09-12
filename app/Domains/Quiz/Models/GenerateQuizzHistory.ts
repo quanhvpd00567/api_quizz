@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose'
+import paginate from 'mongoose-paginate-v2';
 
 export interface ISGenerateQuizHistory extends Document {
   user: mongoose.Types.ObjectId
@@ -68,8 +69,10 @@ StudentQuizSchema.pre('save', function (this: ISGenerateQuizHistory, next) {
   next()
 })
 
+StudentQuizSchema.plugin(paginate);
+
 // Create and export the model
-const GenerateQuizHistory = mongoose.model<ISGenerateQuizHistory, IStGenerateQuizHistoryModel>(
+const GenerateQuizHistory = mongoose.model<ISGenerateQuizHistory, mongoose.PaginateModel<IStGenerateQuizHistoryModel>>(
   'GenerateQuizHistory',
   StudentQuizSchema
 )

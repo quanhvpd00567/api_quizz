@@ -140,5 +140,14 @@ router
 
     // job ai save quiz
     router.post('/quizzes/ai-save', '#domains/Quiz/Controllers/QuizController.saveAiQuiz')
+
+
+    // AI routes (protected)
+    router
+      .group(() => {
+        router.get('/generate-process', '#domains/Ai/Controllers/AiController.list')
+      })
+      .prefix('/ai')
+      .middleware([middleware.auth()])
   })
   .prefix('/api/v1')
