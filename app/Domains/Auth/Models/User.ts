@@ -32,6 +32,7 @@ export interface IUser extends Document {
     timezone: string
     emailNotifications: boolean
     theme: string
+    telegram_id: string
   }
   metadata: {
     registrationIP?: string
@@ -72,7 +73,6 @@ const UserSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email'],
     },
     username: {
       type: String,
@@ -168,6 +168,7 @@ const UserSchema = new Schema<IUser>(
         default: 'light',
         enum: ['light', 'dark', 'auto'],
       },
+      telegram_id: { type: String, default: '' },
     },
     metadata: {
       registrationIP: String,
@@ -207,20 +208,11 @@ UserSchema.virtual('fullName').get(function () {
 })
 
 // Pre-save middleware to hash password
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next()
-
-  try {
-    const salt = await bcrypt.genSalt(12)
-    this.password = await bcrypt.hash(this.password, salt)
-    next()
-  } catch (error) {
-    next(error as Error)
-  }
-})
+UserSchema.pre('save', async function () {})
 
 // Instance Methods
 UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  console.log('Comparing passwords for user:', candidatePassword, this.password) // Debug   log
   return bcrypt.compare(candidatePassword, this.password)
 }
 

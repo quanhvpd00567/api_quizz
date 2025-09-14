@@ -1,4 +1,3 @@
-import { log } from 'node:console'
 import { z } from 'zod'
 
 // Answer schema for validation
@@ -59,7 +58,7 @@ const createQuestionSchema = z
       .default([])
       .transform((tags) => [...new Set(tags.map((tag) => tag.trim().toLowerCase()))]),
     isActive: z.boolean().default(true),
-    createdBy: z.string().optional().default(null),
+    createdBy: z.string().nullable().optional().default(null),
   })
   .refine(
     (data) => {

@@ -3,14 +3,16 @@ import StudentQuiz from '#domains/Quiz/Models/StudentQuiz'
 import Quiz from '#domains/Quiz/Models/Quiz'
 import StudentQuizHistory from '#domains/Quiz/Models/StudentQuizHistory'
 import Question from '#domains/Question/Models/Question'
-import { positive } from 'zod'
-import GeminiService from './GeminiService.js'
+import queue from '@rlanz/bull-queue/services/main'
+import JobPushNotificationMakeQuizSuccess from '#jobs/JobPushNotificationMakeQuizSuccess'
+import User from '#domains/Auth/Models/User'
 
 export default class MakeQuizService {
   public static async makeQuiz(
     studentQuizId: mongoose.Types.ObjectId,
     data: any,
-    studentId: mongoose.Types.ObjectId
+    studentId: mongoose.Types.ObjectId,
+    user: { fullName: string }
   ): Promise<any> {
     // find student quiz by studentQuizId and studentId
     const studentQuiz = await StudentQuiz.findOne({
@@ -121,6 +123,30 @@ export default class MakeQuizService {
     studentQuiz.status = 'completed'
     await studentQuiz.save()
 
+    const student = await User.findById(studentId).populate('parent')
+    const telegramChatId =
+      student && student.parent ? (student.parent as any).preferences.telegram_id : null
+    if (student && telegramChatId) {
+      const message = await this.buildTelegramMessage({
+        parentName: student.parent ? (student.parent as any).fullName : 'Phụ huynh',
+        fullName: user.fullName,
+        title: (studentQuiz.quizz as any).title,
+        score: totalScore,
+        result: history.status === 'passed' ? 'Đạt' : 'Không đạt',
+        totalPoints: (studentQuiz.quizz as any).totalPoints,
+      })
+      queue.dispatch(
+        JobPushNotificationMakeQuizSuccess,
+        {
+          message,
+          telegramChatId,
+        },
+        {
+          queueName: 'makeQuizSuccess',
+        }
+      )
+    }
+
     // Implement your business logic here
     return { message: 'Quiz made successfully', history }
   }
@@ -150,5 +176,28 @@ export default class MakeQuizService {
     }
 
     return { message: 'Quiz results retrieved successfully', history }
+  }
+
+  private static async buildTelegramMessage({
+    parentName,
+    fullName,
+    title,
+    score,
+    result,
+    totalPoints,
+  }: {
+    parentName: string
+    fullName: string
+    title: string
+    score: number
+    result: string
+    totalPoints?: number
+  }) {
+    return `Chào a/c: ${parentName}
+  Chúc mừng cháu <b>${fullName}</b> đã hoàn thành bài trắc nghiệm
+  Dưới đây là kết quả: 
+    + Tên bài trắc nghiệm: <b>🔥 ${title}</b>
+    + Điểm: <b>${score}/${totalPoints}</b>
+    + Kết quả: <b>🔥 ${result}</b>`
   }
 }

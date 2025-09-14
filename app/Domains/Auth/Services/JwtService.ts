@@ -29,14 +29,14 @@ export default class JwtService {
    */
   static generateToken(payload: JwtPayload): JwtToken {
     const token = jwt.sign(payload, this.secret, {
-      expiresIn: this.expiresIn,
+      expiresIn: '7d',
       issuer: 'learning-management-backend',
       audience: 'learning-management-frontend',
     })
 
     // Calculate expiration date
     const expiresAt = new Date()
-    const expiresDays = parseInt(this.expiresIn.replace('d', ''))
+    const expiresDays = Number.parseInt(this.expiresIn.replace('d', ''))
     expiresAt.setDate(expiresAt.getDate() + expiresDays)
 
     return {
@@ -75,7 +75,7 @@ export default class JwtService {
     }
 
     const [type, token] = authorization.split(' ')
-    
+
     if (type !== 'Bearer' || !token) {
       return null
     }

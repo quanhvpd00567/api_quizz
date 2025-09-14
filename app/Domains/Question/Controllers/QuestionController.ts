@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Question from '#domains/Question/Models/Question'
+import Subject from '#domains/Subject/Models/Subject'
 import {
   validateCreateQuestion,
   validateUpdateQuestion,
@@ -33,70 +34,61 @@ export default class QuestionController {
         class: classFilter,
         tags,
         isActive,
-        sortBy,
-        sortOrder,
       } = queryValidation.data!
 
       // Build query
-      let query = Question.find()
+      let query = {} as any
 
       // Apply filters
       if (isActive !== undefined) {
-        query = query.where('isActive', isActive)
+        query.isActive = isActive
       }
 
       if (type) {
-        query = query.where('type', type)
+        query.type = type
       }
 
       if (difficulty) {
-        query = query.where('difficulty', difficulty)
+        query.difficulty = difficulty
       }
 
       if (subject) {
-        query = query.where('subject', subject)
+        query.subject = subject
       }
 
       if (classFilter) {
-        query = query.where('class', classFilter)
+        query.class = classFilter
       }
 
       if (tags && tags.length > 0) {
-        query = query.where('tags').in(tags)
+        query.tags = { $in: tags }
       }
 
       if (search) {
-        query = query.or([
+        query.$or = [
           { title: { $regex: search, $options: 'i' } },
-          { content: { $regex: search, $options: 'i' } },
           { tags: { $regex: search, $options: 'i' } },
-        ])
+        ]
       }
 
-      // Execute query with pagination
-      const skip = (page - 1) * limit
-      const sortDirection = sortOrder === 'asc' ? 1 : -1
-
-      const questions = await query
-        .populate('subject', 'name code')
-        .populate('createdBy', 'username email')
-        .sort({ [sortBy]: sortDirection })
-        .skip(skip)
-        .limit(limit)
-
-      // Get total count for pagination
-      const total = await Question.countDocuments(query.getQuery())
+      const options = {
+        page,
+        limit,
+        sort: { createdAt: -1 },
+        populate: { path: 'subject', model: Subject, select: 'name code' },
+      }
+      const questions = await (Question as any).paginate(query, options)
 
       return response.ok({
         status: 'success',
         data: {
-          questions,
+          questions: questions.docs,
           pagination: {
             page,
             limit,
-            total,
-            totalPages: Math.ceil(total / limit),
-            hasNext: page * limit < total,
+            total: questions.totalDocs,
+            totalPages: questions.totalPages,
+            hasNext: page * limit < questions.totalDocs,
             hasPrev: page > 1,
           },
         },
@@ -393,7 +385,7 @@ export default class QuestionController {
         status: 'success',
         message: `Bulk ${action} completed successfully`,
         data: {
-          affected: result.modifiedCount || result.deletedCount || 0,
+          affected: 'modifiedCount' in result ? result.modifiedCount : result.deletedCount || 0,
           total: questionIds.length,
         },
         timestamp: new Date().toISOString(),

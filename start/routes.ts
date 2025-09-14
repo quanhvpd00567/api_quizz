@@ -134,13 +134,11 @@ router
     router
       .group(() => {
         router.get('/', '#domains/Child/Controllers/ChildController.getChildren')
+        router.post('/', '#domains/Child/Controllers/ChildController.addChild')
+        router.put('/:id', '#domains/Child/Controllers/ChildController.updateChild')
       })
       .prefix('/children')
       .middleware([middleware.auth(), middleware.parentAccess()])
-
-    // job ai save quiz
-    router.post('/quizzes/ai-save', '#domains/Quiz/Controllers/QuizController.saveAiQuiz')
-
 
     // AI routes (protected)
     router

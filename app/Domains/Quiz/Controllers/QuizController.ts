@@ -9,8 +9,6 @@ import {
   validateUpdateQuiz,
   validateQuizQuery,
 } from '#domains/Quiz/Validators/QuizValidator'
-import { log } from 'node:console'
-
 export default class QuizController {
   /**
    * Get all quizzes with pagination and filtering
@@ -26,7 +24,6 @@ export default class QuizController {
         delete params.class
       }
       const queryValidation = validateQuizQuery(params)
-      console.log(queryValidation, params, 1)
 
       if (!queryValidation.isValid) {
         return response.status(422).json({
@@ -47,20 +44,18 @@ export default class QuizController {
         subject,
         class: classFilter,
         isPublic,
-        sortBy,
-        sortOrder,
       } = queryValidation.data!
 
       // Build query
-      let query = Quiz.find()
+      let query = {} as any
 
       // Apply filters
       if (isActive !== undefined) {
-        query = query.where('isActive', isActive)
+        query.isActive = isActive
       }
 
       if (difficulty) {
-        query = query.where('difficulty', difficulty)
+        query.difficulty = difficulty
       }
 
       if (instructor) {
@@ -68,49 +63,42 @@ export default class QuizController {
       }
 
       if (subject) {
-        query = query.where('subject', subject)
+        query.subject = subject
       }
 
       if (classFilter) {
-        query = query.where('class', classFilter)
+        query.class = classFilter
       }
 
       if (isPublic !== undefined) {
-        query = query.where('isPublic', isPublic)
+        query.isPublic = isPublic
       }
 
       if (search) {
-        query = query.or([
+        query.$or = [
           { title: { $regex: search, $options: 'i' } },
           { description: { $regex: search, $options: 'i' } },
           { tags: { $in: [new RegExp(search, 'i')] } },
-        ])
+        ]
       }
 
       // Execute query with pagination
-      const skip = (page - 1) * limit
-      const sortDirection = sortOrder === 'asc' ? 1 : -1
-
-      const quizzes = await query
-        .sort({ [sortBy]: sortDirection })
-        .skip(skip)
-        .limit(limit)
-        .populate({ path: 'subject', model: Subject, select: 'name code' }) // Populate subject details
-
-      // Get total count for pagination
-      const total = await Quiz.countDocuments(query.getQuery())
-
+      const options = {
+        page,
+        limit,
+        sort: { createdAt: -1 },
+        populate: { path: 'subject', model: Subject, select: 'name code' },
+      }
+      const quizzes = await (Quiz as any).paginate(query, options)
       return response.ok({
         status: 'success',
         data: {
-          quizzes,
+          quizzes: quizzes.docs,
           pagination: {
             page,
             limit,
-            total,
-            totalPages: Math.ceil(total / limit),
-            hasNext: page * limit < total,
-            hasPrev: page > 1,
+            total: quizzes.totalDocs,
+            totalPages: quizzes.totalPages,
           },
         },
         timestamp: new Date().toISOString(),
@@ -132,8 +120,6 @@ export default class QuizController {
   async show({ params, response }: HttpContext) {
     try {
       const { id } = params
-
-      log('Fetching quiz with ID:', id) // Debug log
 
       const quiz = await Quiz.findById(id)
         .populate({
@@ -228,8 +214,6 @@ export default class QuizController {
         timestamp: new Date().toISOString(),
       })
     } catch (error: any) {
-      console.error('Create quiz error:', error)
-
       return response.status(500).json({
         status: 'error',
         message: 'Failed to create quiz',
@@ -275,7 +259,6 @@ export default class QuizController {
         const existingQuiz = await Quiz.findOne({
           _id: { $ne: id },
           title: { $regex: `^${payload.title}$`, $options: 'i' },
-          instructor: quiz.instructor,
         })
 
         if (existingQuiz) {
@@ -548,30 +531,6 @@ export default class QuizController {
       return response.status(500).json({
         status: 'error',
         message: 'Failed to generate quiz',
-        timestamp: new Date().toISOString(),
-      })
-    }
-  }
-
-  /**
-   * Save AI generated quiz
-   * POST /quizzes/ai-save
-   */
-  async saveAiQuiz({ request, response }: HttpContext) {
-    try {
-      const body = request.body()
-      console.log('Generate quiz request body:aaaaaaaa');
-      const result = await QuizService.saveAiGeneratedQuiz(body)
-      return response.status(200).json({
-        status: 'success',
-        data: result,
-        timestamp: new Date().toISOString(),
-      })
-    } catch (error) {
-      console.error('Save AI quiz error:', error)
-      return response.status(500).json({
-        status: 'error',
-        message: 'Failed to save AI quiz',
         timestamp: new Date().toISOString(),
       })
     }

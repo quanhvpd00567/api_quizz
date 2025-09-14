@@ -34,10 +34,14 @@ export default class StudentQuizService {
   // Update quiz status for a student
   public static async updateQuizStatus(
     studentQuizId: mongoose.Types.ObjectId,
-    status: 'not_started' | 'in_progress' | 'completed'
+    status: 'not_started' | 'in_progress' | 'completed',
+    userId: mongoose.Types.ObjectId
   ): Promise<any> {
     try {
-      const studentQuiz = await StudentQuiz.findById(studentQuizId)
+      const studentQuiz = await StudentQuiz.findOne({
+        _id: studentQuizId,
+        student: userId,
+      })
       if (!studentQuiz) {
         return {
           status: 'error',
@@ -48,7 +52,7 @@ export default class StudentQuizService {
 
       // nếu số lần làm bài đã đạt maxAttempts thì không cho phép update trạng thái
       const quiz = await Quiz.findById(studentQuiz.quizz)
-      if (quiz && Number(studentQuiz.number_of_attempts || 0) + 1 >= quiz.maxAttempts) {
+      if (quiz && Number(studentQuiz.number_of_attempts || 0) + 1 > quiz.maxAttempts) {
         return {
           status: 'error',
           message: 'Bạn đã hết lần làm bài kiểm tra này',

@@ -10,7 +10,7 @@ export default class AiController {
     try {
       const filters = request.qs()
       const user = auth?.user
-      const result = await AiService.queryProcess(filters)
+      const result = await AiService.queryProcess(filters, user)
       return response.ok({
         status: 'success',
         data: result.data,

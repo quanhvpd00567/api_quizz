@@ -4,13 +4,17 @@ import StudentQuiz from '#domains/Quiz/Models/StudentQuiz'
 import Quiz from '#domains/Quiz/Models/Quiz'
 import Subject from '#domains/Subject/Models/Subject'
 import Question from '#domains/Question/Models/Question'
-import mongoose from 'mongoose'
 
 export default class StudentQuizController {
   // Get quizzes assigned to a student
-  public async getQuizzes({ params, response }: any) {
+  public async getQuizzes({ params, response, auth }: any) {
     try {
-      const { studentId } = params
+      let { studentId } = params
+
+      if (auth && auth.user.role === 'student') {
+        studentId = auth.user.id
+      }
+
       const result = await StudentQuizService.getQuizzesForStudent(studentId)
       return response.ok(result)
     } catch (error) {
@@ -24,14 +28,18 @@ export default class StudentQuizController {
   }
 
   // Update quiz status to in_progress
-  public async updateQuizStatusStart({ params, response }: any) {
+  public async updateQuizStatusStart({ params, response, auth }: any) {
     try {
       const { studentQuizId } = params
-      const result = await StudentQuizService.updateQuizStatus(studentQuizId, 'in_progress')
-      if (!result) {
+      const result = await StudentQuizService.updateQuizStatus(
+        studentQuizId,
+        'in_progress',
+        auth?.user.id
+      )
+      if (result.status === 'error') {
         return response.status(404).json({
           status: 'error',
-          message: 'Bài kiểm tra không tìm thấy hoặc không thể cập nhật trạng thái',
+          message: 'Không có quyền làm bài hoặc đã hết số lần làm',
           timestamp: new Date().toISOString(),
         })
       }
@@ -42,7 +50,6 @@ export default class StudentQuizController {
         timestamp: new Date().toISOString(),
       })
     } catch (error) {
-      console.error('Update quiz status error:', error)
       return response.status(500).json({
         status: 'error',
         message: 'Không thể cập nhật trạng thái bài kiểm tra',

@@ -1,7 +1,5 @@
 import ChildService from '#domains/Child/Services/ChildService'
 import type { HttpContext } from '@adonisjs/core/http'
-import axios from 'axios'
-import fs from 'node:fs'
 
 export default class ChildController {
   async getChildren({ response, auth }: HttpContext) {
@@ -21,39 +19,94 @@ export default class ChildController {
     }
   }
 
-  public async testAi() {
-    const text = fs.readFileSync('app/Domains/Child/data.txt', 'utf8')
-    const data = JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              text: text,
-            },
-          ],
-        },
-      ],
-    })
-
-    const config = {
-      method: 'post',
-      url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-goog-api-key': 'AIzaSyDLaS8vN5gFdStPgP31jWSUj5eLQ17kW8M',
-      },
-      data: data,
-    }
-
+  async addChild({ request, response, auth }: HttpContext) {
     try {
-      const response = await axios(config)
-      const result = response.data.candidates[0].content.parts[0].text
-      let cleaned = result.replace(/^```json\s*/, '').replace(/```$/, '')
-      let fixed = cleaned.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+      const parentId = auth && auth.user.id
+      const { email, username, firstName, lastName, password } = request.only([
+        'email',
+        'username',
+        'firstName',
+        'lastName',
+        'password',
+      ])
 
-      console.log(JSON.parse(fixed))
+      // Kiểm tra nếu email hoặc username đã tồn tại
+      const existingUser = await ChildService.findUserByEmailOrUsername(email, username)
+      if (existingUser) {
+        return response.status(400).json({
+          success: false,
+          message: 'Email hoặc username đã tồn tại',
+        })
+      }
+      const newChild = await ChildService.createChild({
+        parentId,
+        email,
+        username,
+        firstName,
+        lastName,
+        password,
+      })
+      return response.created({
+        status: 'success',
+        data: { child: newChild },
+        timestamp: new Date().toISOString(),
+      })
     } catch (error) {
-      console.log(error)
+      console.error('Error adding child:', error)
+      return response.status(500).json({
+        success: false,
+        message: 'Đã xảy ra lỗi khi thêm trẻ em',
+      })
+    }
+  }
+
+  async updateChild({ params, request, response, auth }: HttpContext) {
+    try {
+      const parentId = auth && auth.user.id
+      const childId = params.id
+      const { email, firstName, lastName, password, isActive } = request.only([
+        'email',
+        'firstName',
+        'lastName',
+        'password',
+        'isActive',
+      ])
+
+      // Kiểm tra nếu email đã tồn tại cho người dùng khác
+      const existingUser = await ChildService.findUserByEmail(email)
+      if (existingUser && existingUser.id !== childId) {
+        return response.status(400).json({
+          success: false,
+          message: 'Email đã tồn tại',
+        })
+      }
+
+      const updatedChild = await ChildService.updateChild(childId, parentId, {
+        email,
+        firstName,
+        lastName,
+        password,
+        isActive,
+      })
+
+      if (!updatedChild) {
+        return response.status(404).json({
+          success: false,
+          message: 'Trẻ em không tồn tại hoặc bạn không có quyền cập nhật',
+        })
+      }
+
+      return response.ok({
+        status: 'success',
+        data: { child: updatedChild },
+        timestamp: new Date().toISOString(),
+      })
+    } catch (error) {
+      console.error('Error updating child:', error)
+      return response.status(500).json({
+        success: false,
+        message: 'Đã xảy ra lỗi khi cập nhật trẻ em',
+      })
     }
   }
 }

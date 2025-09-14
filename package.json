@@ -17,7 +17,8 @@
     "migration:fresh": "node ace migration:fresh",
     "db:seed": "node ace db:seed",
     "db:setup": "npm run migration:fresh && npm run db:seed",
-    "queue:start": "node --no-warnings ace queue:listen --queue=startQuiz"
+    "queue:start": "node --no-warnings ace queue:listen --queue=startQuiz",
+    "queue:start_notification": "node --no-warnings ace queue:listen --queue=makeQuizSuccess"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
@@ -77,6 +78,7 @@
     "bull": "^4.16.5",
     "bullmq": "^5.58.5",
     "cors": "^2.8.5",
+    "groq-sdk": "^0.32.0",
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose'
+import paginate from 'mongoose-paginate-v2'
 
 // Interface for Quiz document
 export interface IQuiz extends Document {
@@ -74,11 +75,11 @@ const QuizSchema = new Schema<IQuiz>(
       trim: true,
       maxlength: [20, 'Class cannot exceed 20 characters'],
     },
-    // instructor: {
-    //   type: Schema.Types.ObjectId,
-    //   ref: 'User',
-    //   required: [true, 'Instructor is required'],
-    // },
+    instructions: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     difficulty: {
       type: String,
       enum: {
@@ -335,6 +336,8 @@ QuizSchema.statics.findByDifficulty = function (difficulty: string) {
     .populate('instructor subject')
     .sort({ createdAt: -1 })
 }
+
+QuizSchema.plugin(paginate)
 
 // Create and export the model
 const Quiz = mongoose.model<IQuiz, IQuizModel>('Quiz', QuizSchema)

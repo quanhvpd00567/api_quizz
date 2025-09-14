@@ -1,5 +1,5 @@
 import { Schema, model, Document } from 'mongoose'
-import Subject from '#domains/Subject/Models/Subject'
+import paginate from 'mongoose-paginate-v2'
 
 export interface IAnswer {
   id: string
@@ -128,7 +128,7 @@ const questionSchema = new Schema<IQuestion>(
     },
     subject: {
       type: Schema.Types.ObjectId,
-      ref: Subject.modelName,
+      ref: 'Subject',
       index: true,
     },
     class: {
@@ -186,13 +186,15 @@ questionSchema.pre('save', function (next) {
   // Auto-generate true/false answers if type is true_false and no answers provided
   if (this.type === 'true_false' && this.answers.length === 0) {
     this.answers = [
-      { text: 'True', isCorrect: false },
-      { text: 'False', isCorrect: false },
+      { text: 'Đúng', isCorrect: false },
+      { text: 'Sai', isCorrect: false },
     ] as any
   }
 
   next()
 })
+
+questionSchema.plugin(paginate)
 
 const Question = model<IQuestion>('Question', questionSchema)
 

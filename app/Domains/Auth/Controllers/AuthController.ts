@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import User, { UserRole } from '#domains/Auth/Models/User'
-import JwtService from '#domains/Auth/Services/JwtService'
+import User from '#domains/Auth/Models/User'
+import JwtService, { JwtPayload } from '#domains/Auth/Services/JwtService'
 
 export default class AuthController {
   /**
@@ -22,6 +22,8 @@ export default class AuthController {
 
       // Find user by email with password field
       const user = await User.findOne({ email: email.toLowerCase() }).select('+password')
+      console.log('Found user:', user) // Debug log;
+
       if (!user) {
         return response.status(401).json({
           status: 'error',
@@ -66,11 +68,12 @@ export default class AuthController {
       await user.save()
 
       // Generate JWT token
-      const token = JwtService.generateToken({
+      const payload: JwtPayload = {
         userId: user._id?.toString() || '',
         email: user.email,
         role: user.role,
-      })
+      }
+      const token = JwtService.generateToken(payload)
 
       return response.ok({
         status: 'success',

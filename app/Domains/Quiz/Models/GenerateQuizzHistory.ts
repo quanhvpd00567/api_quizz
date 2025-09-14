@@ -1,14 +1,16 @@
 import mongoose, { Schema, Document, Model } from 'mongoose'
-import paginate from 'mongoose-paginate-v2';
+import paginate from 'mongoose-paginate-v2'
 
 export interface ISGenerateQuizHistory extends Document {
   user: mongoose.Types.ObjectId
+  title: string
   data: any
   provider: string
   modelName: string
-  data_error: any;
-  data_ai: any;
+  data_error: any
+  data_ai: any
   status: String
+  quiz?: mongoose.Types.ObjectId
 }
 
 export interface IStGenerateQuizHistoryModel extends Model<ISGenerateQuizHistory> {}
@@ -20,6 +22,11 @@ const StudentQuizSchema = new Schema<ISGenerateQuizHistory>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'User is required'],
+    },
+    title: {
+      type: String,
+      trim: true,
+      default: 'Bài kiểm tra AI',
     },
     provider: {
       type: String,
@@ -49,6 +56,11 @@ const StudentQuizSchema = new Schema<ISGenerateQuizHistory>(
       },
       default: 'not_started',
     },
+    quiz: {
+      type: Schema.Types.ObjectId,
+      ref: 'Quiz',
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -69,12 +81,12 @@ StudentQuizSchema.pre('save', function (this: ISGenerateQuizHistory, next) {
   next()
 })
 
-StudentQuizSchema.plugin(paginate);
+StudentQuizSchema.plugin(paginate)
 
 // Create and export the model
-const GenerateQuizHistory = mongoose.model<ISGenerateQuizHistory, mongoose.PaginateModel<IStGenerateQuizHistoryModel>>(
-  'GenerateQuizHistory',
-  StudentQuizSchema
-)
+const GenerateQuizHistory = mongoose.model<
+  ISGenerateQuizHistory,
+  mongoose.PaginateModel<IStGenerateQuizHistoryModel>
+>('GenerateQuizHistory', StudentQuizSchema)
 
 export default GenerateQuizHistory

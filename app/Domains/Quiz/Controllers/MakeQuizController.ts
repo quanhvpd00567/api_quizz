@@ -8,19 +8,16 @@ import type { HttpContext } from '@adonisjs/core/http'
 //   validateQuizQuery,
 // } from '#domains/Quiz/Validators/QuizValidator'
 import MakeQuizService from '#domains/Quiz/Services/MakeQuizService'
-import mongoose from 'mongoose'
 
 export default class MakeQuizController {
-  public async makeQuiz({ params, request, response }: HttpContext) {
+  public async makeQuiz({ params, request, response, auth }: HttpContext) {
     try {
       const { id } = params
       const body = request.body()
 
-      const result = await MakeQuizService.makeQuiz(
-        id,
-        body,
-        new mongoose.Types.ObjectId('68a04f99b40ee20a436cf0d9')
-      ) // Replace with actual student ID
+      const result = await MakeQuizService.makeQuiz(id, body, auth?.user.id, {
+        fullName: auth?.user.fullName,
+      })
 
       return response.ok({
         status: 'success',
@@ -37,13 +34,10 @@ export default class MakeQuizController {
     }
   }
 
-  public async historyQuiz({ params, response }: HttpContext) {
+  public async historyQuiz({ params, response, auth }: HttpContext) {
     try {
       const { id } = params
-      const result = await MakeQuizService.getQuizResults(
-        id,
-        new mongoose.Types.ObjectId('68a04f99b40ee20a436cf0d9')
-      ) // Replace with actual student ID
+      const result = await MakeQuizService.getQuizResults(id, auth?.user.id)
 
       return response.ok({
         status: 'success',
