@@ -136,6 +136,8 @@ router
         router.get('/', '#domains/Child/Controllers/ChildController.getChildren')
         router.post('/', '#domains/Child/Controllers/ChildController.addChild')
         router.put('/:id', '#domains/Child/Controllers/ChildController.updateChild')
+        // get child results
+        router.get('/:id/results', '#domains/Child/Controllers/ChildController.getChildResults')
       })
       .prefix('/children')
       .middleware([middleware.auth(), middleware.parentAccess()])

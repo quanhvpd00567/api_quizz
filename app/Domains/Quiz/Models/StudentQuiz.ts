@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose'
+import paginate from 'mongoose-paginate-v2'
 
 export interface IStudentQuiz extends Document {
   quizz: mongoose.Types.ObjectId
@@ -63,9 +64,11 @@ StudentQuizSchema.virtual('attempts', {
 StudentQuizSchema.pre('save', function (this: IStudentQuiz, next) {
   next()
 })
+// Add pagination plugin
+StudentQuizSchema.plugin(paginate)
 
 // Create and export the model
-const StudentQuiz = mongoose.model<IStudentQuiz, IStudentQuizModel>(
+const StudentQuiz = mongoose.model<IStudentQuiz, mongoose.PaginateModel<IStudentQuizModel>>(
   'StudentQuiz',
   StudentQuizSchema
 )

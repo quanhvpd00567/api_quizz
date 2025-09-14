@@ -109,4 +109,38 @@ export default class ChildController {
       })
     }
   }
+
+  async getChildResults({ params, request, response, auth }: HttpContext) {
+    try {
+      const parentId = auth && auth.user.id
+      const childId = params.id
+      const { page, limit } = request.qs()
+      const filters = {
+        page: page ? Number.parseInt(page, 10) : 1,
+        limit: limit ? Number.parseInt(limit, 10) : 10,
+      }
+
+      // Verify that the child belongs to the authenticated parent
+      const child = await ChildService.getChildByIdAndParentId(childId, parentId)
+      if (!child) {
+        return response.status(404).json({
+          success: false,
+          message: 'Trẻ em không tồn tại hoặc bạn không có quyền truy cập',
+        })
+      }
+
+      const results = await ChildService.getChildResults(childId, filters)
+      return response.ok({
+        status: 'success',
+        data: { ...results, childName: `${child.firstName} ${child.lastName}` },
+        timestamp: new Date().toISOString(),
+      })
+    } catch (error) {
+      console.error('Error fetching child results:', error)
+      return response.status(500).json({
+        success: false,
+        message: 'Đã xảy ra lỗi khi lấy kết quả của trẻ em',
+      })
+    }
+  }
 }

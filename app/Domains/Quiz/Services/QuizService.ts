@@ -23,12 +23,18 @@ export default class QuizService {
         }
       }
 
-      const studentQuizz = await StudentQuiz.findOne({
-        quizz: quizId,
-        student: userId,
-        status: { $in: ['in_progress', 'completed'] },
-        number_of_attempts: { $lt: quiz.maxAttempts },
-      })
+      const studentQuizz = await StudentQuiz.findOne(
+        {
+          quizz: quizId,
+          student: userId,
+          $or: [
+            { status: { $in: ['not_started', 'in_progress'] } },
+            { $and: [{ number_of_attempts: { $lt: quiz.maxAttempts } }, { status: 'completed' }] },
+          ],
+        },
+        null,
+        { sort: { createdAt: -1 } }
+      )
 
       if (studentQuizz) {
         return {

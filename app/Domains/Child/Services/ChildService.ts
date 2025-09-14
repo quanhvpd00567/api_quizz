@@ -1,5 +1,8 @@
 import User from '#domains/Auth/Models/User'
 import bcrypt from 'bcryptjs'
+import StudentQuiz from '#domains/Quiz/Models/StudentQuiz'
+import Quiz from '#domains/Quiz/Models/Quiz'
+import StudentQuizHistory from '#domains/Quiz/Models/StudentQuizHistory'
 
 class ChildService {
   public static async getChildrenByParentId(parentId: string): Promise<any[]> {
@@ -109,6 +112,48 @@ class ChildService {
     } catch (error) {
       console.error('Error updating child:', error)
       throw new Error('Failed to update child')
+    }
+  }
+
+  public static async getChildResults(
+    childId: string,
+    filters: { page: number; limit: number }
+  ): Promise<any[]> {
+    try {
+      let query = { student: childId }
+      const options = {
+        sort: { createdAt: -1 },
+        lean: true,
+        limit: 10,
+        page: filters.page || 1,
+        populate: [
+          { path: 'quizz', model: Quiz, select: 'title subject totalPoints' },
+          { path: 'last_history', model: StudentQuizHistory },
+        ],
+      }
+      const paginatedResults = await StudentQuiz.paginate(query, options)
+      return {
+        data: paginatedResults.docs,
+        total: paginatedResults.totalDocs,
+        limit: paginatedResults.limit,
+        page: paginatedResults.page,
+        totalPages: paginatedResults.totalPages,
+      }
+    } catch (error) {
+      return []
+    }
+  }
+
+  public static async getChildByIdAndParentId(
+    childId: string,
+    parentId: string
+  ): Promise<any | null> {
+    try {
+      return await User.findOne({ _id: childId, parent: parentId, role: 'student' }).select(
+        'id email username lastName firstName isActive createdAt updatedAt'
+      )
+    } catch (error) {
+      return null
     }
   }
 }
