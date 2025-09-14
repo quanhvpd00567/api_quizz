@@ -34,6 +34,7 @@ export interface IQuiz extends Document {
   dataQrCode: string
   releaseDate: Date
   showResultsImmediately: boolean
+  isAssigned?: boolean // Virtual field to indicate if assigned to a student
 
   // Instance methods
   addQuestion(questionId: mongoose.Types.ObjectId): Promise<void>

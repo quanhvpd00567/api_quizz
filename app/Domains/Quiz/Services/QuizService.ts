@@ -26,12 +26,15 @@ export default class QuizService {
       const studentQuizz = await StudentQuiz.findOne({
         quizz: quizId,
         student: userId,
+        status: { $in: ['in_progress', 'completed'] },
+        number_of_attempts: { $lt: quiz.maxAttempts },
       })
 
       if (studentQuizz) {
         return {
           status: 'error',
-          message: 'Bài kiểm tra đã được giao cho học sinh rồi',
+          message:
+            'Bài này đã được giao cho học sinh hoặc học sinh đã hoàn thành số lần thử tối đa',
           timestamp: new Date().toISOString(),
         }
       }

@@ -20,9 +20,10 @@ export default class AuthController {
         })
       }
 
-      // Find user by email with password field
-      const user = await User.findOne({ email: email.toLowerCase() }).select('+password')
-      console.log('Found user:', user) // Debug log;
+      // Find user by email or username with password field
+      const user = await User.findOne({
+        $or: [{ email: email.toLowerCase() }, { username: email.toLowerCase() }],
+      }).select('+password')
 
       if (!user) {
         return response.status(401).json({
@@ -91,7 +92,6 @@ export default class AuthController {
         timestamp: new Date().toISOString(),
       })
     } catch (error) {
-      console.error('Admin login error:', error)
       return response.status(500).json({
         status: 'error',
         message: 'Internal server error',
@@ -105,8 +105,6 @@ export default class AuthController {
    * POST /auth/admin/logout
    */
   async adminLogout({ response }: HttpContext) {
-    // Note: In JWT-based auth, logout is typically handled client-side
-    // by removing the token. Server-side logout would require token blacklisting.
     return response.ok({
       status: 'success',
       message: 'Logout successful',

@@ -29,7 +29,7 @@ export default class JwtService {
    */
   static generateToken(payload: JwtPayload): JwtToken {
     const token = jwt.sign(payload, this.secret, {
-      expiresIn: '7d',
+      expiresIn: '1d',
       issuer: 'learning-management-backend',
       audience: 'learning-management-frontend',
     })

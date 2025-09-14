@@ -508,7 +508,6 @@ export default class QuizController {
       const result = await QuizService.assignQuizToUser(id, studentId)
       return response.ok(result)
     } catch (error) {
-      console.error('Assign quiz error:', error)
       return response.status(500).json({
         status: 'error',
         message: 'Không thể giao bài kiểm tra',
