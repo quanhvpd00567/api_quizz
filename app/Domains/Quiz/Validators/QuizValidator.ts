@@ -72,11 +72,12 @@ const createQuizSchema = z.object({
     .string()
     .transform((val) => new mongoose.Types.ObjectId(val))
     .optional()
-    .default(undefined),
-  password: z.string().min(6).optional().default(undefined),
+    .nullable()
+    .default(null),
+  password: z.string().min(6).optional().nullable().default(null),
   isQrCode: z.boolean().optional().default(false),
-  dataQrCode: z.string().optional().default(undefined),
-  releaseDate: z.date().optional().default(undefined),
+  dataQrCode: z.string().optional().nullable().default(null),
+  releaseDate: z.date().optional().nullable().default(null),
 })
 
 // Update Quiz Validation Schema (all fields optional)
