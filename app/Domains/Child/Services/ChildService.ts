@@ -115,10 +115,7 @@ class ChildService {
     }
   }
 
-  public static async getChildResults(
-    childId: string,
-    filters: { page: number; limit: number }
-  ): Promise<any[]> {
+  public static async getChildResults(childId: string, filters: { page: number; limit: number }) {
     try {
       let query = { student: childId }
       const options = {
@@ -131,9 +128,9 @@ class ChildService {
           { path: 'last_history', model: StudentQuizHistory },
         ],
       }
-      const paginatedResults = await StudentQuiz.paginate(query, options)
+      const paginatedResults = await (StudentQuiz as any).paginate(query, options)
       return {
-        data: paginatedResults.docs,
+        results: paginatedResults.docs,
         total: paginatedResults.totalDocs,
         limit: paginatedResults.limit,
         page: paginatedResults.page,

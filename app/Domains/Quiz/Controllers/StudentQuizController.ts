@@ -66,8 +66,8 @@ export default class StudentQuizController {
     try {
       const { studentQuizId } = params
       // get student quiz by id
-      const studentQuiz = await StudentQuiz.findById(studentQuizId)
-      if (!studentQuiz || !studentQuiz?.quizz) {
+      const studentQuizz = await StudentQuiz.findById(studentQuizId)
+      if (!studentQuizz || (studentQuizz && !studentQuizz.quizz)) {
         return response.status(404).json({
           status: 'error',
           message: 'Student quiz not found',
@@ -75,7 +75,7 @@ export default class StudentQuizController {
         })
       }
 
-      const quiz = await Quiz.findById(studentQuiz?.quizz._id)
+      const quiz = await Quiz.findById(studentQuizz?.quizz._id)
         .populate({
           path: 'subject',
           model: Subject,

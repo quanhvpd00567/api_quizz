@@ -53,13 +53,6 @@ const StudentQuizSchema = new Schema<IStudentQuiz>(
 // Indexes
 StudentQuizSchema.index({ student: 1, quizz: 1 }, { unique: true })
 
-// Virtual for quiz attempts
-StudentQuizSchema.virtual('attempts', {
-  ref: 'QuizAttempt',
-  localField: '_id',
-  foreignField: 'quiz',
-})
-
 // Pre-save middleware
 StudentQuizSchema.pre('save', function (this: IStudentQuiz, next) {
   next()
@@ -68,7 +61,17 @@ StudentQuizSchema.pre('save', function (this: IStudentQuiz, next) {
 StudentQuizSchema.plugin(paginate)
 
 // Create and export the model
-const StudentQuiz = mongoose.model<IStudentQuiz, mongoose.PaginateModel<IStudentQuizModel>>(
+// const StudentQuiz = mongoose.model<IStudentQuiz, mongoose.PaginateModel<IStudentQuizModel>>(
+//   'StudentQuiz',
+//   StudentQuizSchema
+// )
+
+// const StudentQuiz = mongoose.model<IStudentQuiz, IStudentQuizModel>(
+//   'StudentQuiz',
+//   StudentQuizSchema
+// )
+
+const StudentQuiz = mongoose.model<IStudentQuiz, mongoose.PaginateModel<IStudentQuiz>>(
   'StudentQuiz',
   StudentQuizSchema
 )
