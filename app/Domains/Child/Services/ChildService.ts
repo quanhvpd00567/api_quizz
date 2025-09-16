@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import StudentQuiz from '#domains/Quiz/Models/StudentQuiz'
 import Quiz from '#domains/Quiz/Models/Quiz'
 import StudentQuizHistory from '#domains/Quiz/Models/StudentQuizHistory'
+import mongoose from 'mongoose'
 
 class ChildService {
   public static async getChildrenByParentId(parentId: string): Promise<any[]> {
@@ -115,26 +116,72 @@ class ChildService {
     }
   }
 
-  public static async getChildResults(childId: string, filters: { page: number; limit: number }) {
+  public static async getChildResults(
+    childId: string,
+    filters: { page: number; limit: number; search?: string }
+  ): Promise<any> {
     try {
-      let query = { student: childId }
       const options = {
         sort: { createdAt: -1 },
         lean: true,
-        limit: 10,
+        limit: filters.limit || 10,
         page: filters.page || 1,
         populate: [
           { path: 'quizz', model: Quiz, select: 'title subject totalPoints' },
           { path: 'last_history', model: StudentQuizHistory },
         ],
       }
-      const paginatedResults = await (StudentQuiz as any).paginate(query, options)
+
+      const aggregate = StudentQuiz.aggregate([
+        {
+          $lookup: {
+            from: 'quizzes',
+            localField: 'quizz',
+            foreignField: '_id',
+            as: 'quizzInfo',
+          },
+        },
+        { $unwind: '$quizzInfo' },
+        {
+          $lookup: {
+            from: 'studentquizhistories',
+            localField: 'last_history',
+            foreignField: '_id',
+            as: 'lastHistoryInfo',
+          },
+        },
+        { $unwind: { path: '$lastHistoryInfo', preserveNullAndEmptyArrays: true } },
+        {
+          $match: {
+            'student': new mongoose.Types.ObjectId(childId),
+            'quizzInfo.title': { $regex: filters.search, $options: 'i' },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            status: 1,
+            score: 1,
+            totalPoints: 1,
+            number_of_attempts: 1,
+            student: 1,
+            last_history: '$lastHistoryInfo',
+            quizz: '$quizzInfo',
+            title: '$quizzInfo.title',
+          },
+        },
+      ])
+
+      const paginatedResults = await (StudentQuiz as any).aggregatePaginate(aggregate, options)
       return {
         results: paginatedResults.docs,
         total: paginatedResults.totalDocs,
         limit: paginatedResults.limit,
         page: paginatedResults.page,
         totalPages: paginatedResults.totalPages,
+        // xxxxx,
       }
     } catch (error) {
       return []

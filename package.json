@@ -84,6 +84,7 @@
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",
+    "mongoose-aggregate-paginate-v2": "^1.1.4",
     "mongoose-paginate-v2": "^1.9.1",
     "node-cron": "^4.2.1",
     "openai": "^5.19.1",

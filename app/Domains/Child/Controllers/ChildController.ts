@@ -114,10 +114,12 @@ export default class ChildController {
     try {
       const parentId = auth && auth.user.id
       const childId = params.id
-      const { page, limit } = request.qs()
+      const { page, limit, search } = request.qs()
+
       const filters = {
         page: page ? Number.parseInt(page, 10) : 1,
         limit: limit ? Number.parseInt(limit, 10) : 10,
+        search: search || '',
       }
 
       // Verify that the child belongs to the authenticated parent

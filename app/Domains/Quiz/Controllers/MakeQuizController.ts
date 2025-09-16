@@ -34,10 +34,26 @@ export default class MakeQuizController {
     }
   }
 
-  public async historyQuiz({ params, response, auth }: HttpContext) {
+  public async historyQuiz({ params, request, response, auth }: HttpContext) {
     try {
       const { id } = params
-      const result = await MakeQuizService.getQuizResults(id, auth?.user.id)
+      console.log(id)
+
+      let childId = auth?.user.id
+      if (auth?.user.role === 'parent') {
+        const { child_id } = request.qs()
+        childId = child_id
+        console.log(childId)
+        if (!childId) {
+          return response.status(400).json({
+            status: 'error',
+            message: 'child_id is required for non-parent users',
+            timestamp: new Date().toISOString(),
+          })
+        }
+      }
+
+      const result = await MakeQuizService.getQuizResults(id, childId)
 
       return response.ok({
         status: 'success',
